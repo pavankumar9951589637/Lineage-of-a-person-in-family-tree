@@ -1,0 +1,144 @@
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.TreeMap;
+
+class FamilyMember {
+    private String name;
+    private boolean isMale;
+    private FamilyMember parent;
+    private Map<String, FamilyMember> children; // Use TreeMap for lexicographical order
+
+    public FamilyMember(String name, boolean isMale) {
+        this.name = name;
+        this.isMale = isMale;
+        this.children = new TreeMap<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isMale() {
+        return isMale;
+    }
+
+    public FamilyMember getParent() {
+        return parent;
+    }
+
+    public Map<String, FamilyMember> getChildren() {
+        return children;
+    }
+
+    public void setParent(FamilyMember parent) {
+        this.parent = parent;
+    }
+
+    public void addChild(FamilyMember child) {
+        children.put(child.getName(), child);
+        child.setParent(this);
+    }
+}
+
+public class Main{
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        FamilyMember root = new FamilyMember("Root", true);
+
+        System.out.println("Welcome to the Family Tree Application!");
+
+        while (true) {
+            System.out.println("\nOptions:");
+            System.out.println("1. Add a family member");
+            System.out.println("2. Print family tree");
+            System.out.println("3. Find ancestral lineage");
+            System.out.println("4. Exit");
+            System.out.print("Select an option: ");
+
+            int option = scanner.nextInt();
+            scanner.nextLine();  // Consume the newline character
+
+            if (option == 1) {
+                System.out.print("Enter the name of the family member: ");
+                String name = scanner.nextLine();
+                System.out.print("Is this person male? (true/false): ");
+                boolean isMale = scanner.nextBoolean();
+
+                FamilyMember newMember = new FamilyMember(name, isMale);
+
+                System.out.print("Is this person a child of someone in the family tree? (y/n): ");
+                String isChild = scanner.next();
+                if (isChild.equalsIgnoreCase("y")) {
+                    System.out.print("Enter the name of the parent: ");
+                    String parentName = scanner.next();
+                    FamilyMember parent = findFamilyMember(root, parentName);
+                    if (parent != null) {
+                        parent.addChild(newMember);
+                    } else {
+                        System.out.println("Parent not found in the family tree.");
+                    }
+                } else {
+                    System.out.println("This person is added as a new root member.");
+                    root.addChild(newMember);
+                }
+            } else if (option == 2) {
+                System.out.println("\nFamily Tree:");
+                printFamilyTree(root, 0);
+            } else if (option == 3) {
+                System.out.print("Enter the name of the person to find ancestral lineage: ");
+                String personName = scanner.next();
+                FamilyMember person = findFamilyMember(root, personName);
+                if (person != null) {
+                    System.out.println("Ancestral Lineage of " + personName + ":");
+                    printAncestralLineage(person);
+                } else {
+                    System.out.println("Person not found in the family tree.");
+                }
+            } else if (option == 4) {
+                System.out.println("Goodbye!");
+                break;
+            } else {
+                System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private static void printFamilyTree(FamilyMember member, int level) {
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 0; i < level; i++) {
+            prefix.append("    ");
+        }
+        String gender = member.isMale() ? "Male" : "Female";
+        System.out.println(prefix.toString() + member.getName() + " (" + gender + ")");
+        for (FamilyMember child : member.getChildren().values()) {
+            printFamilyTree(child, level + 1);
+        }
+    }
+
+    private static FamilyMember findFamilyMember(FamilyMember member, String name) {
+        if (member.getName().equals(name)) {
+            return member;
+        }
+
+        for (FamilyMember child : member.getChildren().values()) {
+            FamilyMember found = findFamilyMember(child, name);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    private static void printAncestralLineage(FamilyMember person) {
+        FamilyMember current = person;
+        while (current != null) {
+            String gender = current.isMale() ? "Son" : "Daughter";
+            System.out.println(current.getName() + " (" + gender + ")");
+            current = current.getParent();
+        }
+    }
+} 
